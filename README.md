@@ -1,6 +1,7 @@
 # Control Systems and Adaptive Strategies in Rust
 
 Rust lang. to build adaptive control mechanisms, for embedded systems, to balance double, triple or more pendulum system.
+
 Author: [Shashank S.K](https://github.com/CosmicBug), [Ting-Wei C.](https://github.com/tim840818)
 
 

@@ -1,4 +1,3 @@
-// Ting-Wei Chang
 
 extern crate nalgebra as na;
 #[allow(unused_imports)]

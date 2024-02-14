@@ -1,0 +1,15 @@
+[package]
+name = "rust_code"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nalgebra = "0.32.3"
+# lqr = "0.1.0"
+rusty-machine = "0.5.4"
+rand = "0.8.0"
+csv = "1.1.6"
+rulinalg = "0.4.1"
+threads = "0.1.0"

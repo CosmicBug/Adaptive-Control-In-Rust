@@ -3,6 +3,9 @@ extern crate csv;
 extern crate serde;
 extern crate differential_evolution;
 
+extern crate rayon;
+use rayon::prelude::*;
+
 use differential_evolution::self_adaptive_de;
 use na::Vector4; // For a 4-dimensional vector
 use std::f32::consts::PI;
@@ -138,15 +141,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let search_area = vec![(-1.0, 1.0); n_steps];
 
     let mut de = self_adaptive_de(search_area, move |v: &[f32]| {
-        let mut state = Vector4::new(1.5, -0.5, 0.0, 0.0);
+        // let mut state = Vector4::new(1.5, -0.5, 0.0, 0.0);
+        let initial_state = Vector4::new(1.5, -0.5, 0.0, 0.0);
         let m = 1.0;
         let l = 1.0;
         let g = 9.81;
         let mut e_total_sum = 0.0;
 
-        for i in 0..n_steps {
+        // for i in 0..n_steps {
+        // Parallel computation of the total energy sum
+        let e_total_sum: f32 = (0..n_steps).into_par_iter().map(|i| {
             let t = i as f32 * dt;
             let current_v = v[i];
+            let mut state = initial_state;
             state = rk4_step(&derivatives, &state, t, dt, current_v);
             let derivatives_result = derivatives(&state, t, current_v);
             // let e_total = calculate_total_energy(m, l, g, current_v, &state, &derivatives_result);
@@ -159,12 +166,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             let θ_dot = derivatives_result[0];
             let φ_dot = derivatives_result[1];
 
-            let e_total = calculate_total_energy(m, l, current_v, θ, φ, θ_dot, φ_dot, g);
+            // let e_total = calculate_total_energy(m, l, current_v, θ, φ, θ_dot, φ_dot, g);
 
-            e_total_sum += e_total;
-        }
+            // e_total_sum += e_total;
+            calculate_total_energy(m, l, current_v, θ, φ, θ_dot, φ_dot, g)
+        }).sum();
 
         e_total_sum
+        // e_total_sum
     });
 
     de.iter().nth(10000);

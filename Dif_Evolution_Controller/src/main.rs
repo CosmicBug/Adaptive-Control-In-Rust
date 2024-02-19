@@ -22,6 +22,9 @@ struct StateRecord {
 }
 
 
+// Functiom to calculate the derivatives of the state vector - θ, φ, p_θ, p_φ
+// i.e equations of motion
+
 fn derivatives(state: &Vector4<f32>, t: f32, v_scalar: f32) -> Vector4<f32> {
     let m = 1.0; // mass
     let l: f32 = 1.0; // length
@@ -45,6 +48,8 @@ fn derivatives(state: &Vector4<f32>, t: f32, v_scalar: f32) -> Vector4<f32> {
     Vector4::new(θ_dot, φ_dot, pθ_dot, pφ_dot)
 }
 
+
+// Function to perform a single step of the Runge-Kutta 4th order method
 fn rk4_step(f: &dyn Fn(&Vector4<f32>, f32, f32) -> Vector4<f32>, state: &Vector4<f32>, t: f32, dt: f32, v_scalar: f32) -> Vector4<f32> {
     let k1 = dt * f(state, t, v_scalar);
     let k2 = dt * f(&(state + 0.5 * k1), t + 0.5 * dt, v_scalar);
@@ -61,6 +66,7 @@ struct EnergyRecord {
     e_total: f32,
 }
 
+// Function to calculate the total energy of the system
 fn calculate_total_energy(m: f32, l: f32, v: f32, θ: f32, φ: f32, θ_dot: f32, φ_dot: f32, g: f32) -> f32 {
     let cosθ = θ.cos();
     let cosφ = φ.cos();
@@ -74,7 +80,7 @@ fn calculate_total_energy(m: f32, l: f32, v: f32, θ: f32, φ: f32, θ_dot: f32,
 
 fn main() -> Result<(), Box<dyn Error>> {
     let dt = 0.001;
-    let t_final = 10.0;
+    let t_final = 25.0;
     let n_steps = (t_final / dt) as usize;
 
     // Parameters for the INPUT cosine signal
@@ -87,6 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut wtr = csv::Writer::from_path("state_evolution.csv")?;
 
+    // Simulate the system for n_steps
     for i in 0..n_steps {
         let t = i as f32 * dt;
         v_scalar[i] = a * (ω * t + φ_signal).cos();
@@ -102,7 +109,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         };
 
         // Write the record to the CSV
-        wtr.serialize(record)?;
+        // wtr.serialize(record)?;
     }
 
     let m = 1.0; // mass
@@ -128,7 +135,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let e_total = calculate_total_energy(m, l, current_v, θ, φ, θ_dot, φ_dot, g);
 
-        energy_writer.serialize(EnergyRecord { t, e_total })?;
+        // energy_writer.serialize(EnergyRecord { t, e_total })?;
 
         if i == n_steps - 1 {
             println!("t = {:.3}, E_total = {:.3}", t, e_total);
@@ -136,13 +143,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
 
-    let mut wtr_opt = csv::Writer::from_path("optimized_v_vector.csv")?;
+    let mut wtr_opt = csv::Writer::from_path("optimized_control_input.csv")?;
 
-    let search_area = vec![(-1.0, 1.0); n_steps];
+    let search_area = vec![(-0.5, 0.5); n_steps];
 
     let mut de = self_adaptive_de(search_area, move |v: &[f32]| {
         // let mut state = Vector4::new(1.5, -0.5, 0.0, 0.0);
-        let initial_state = Vector4::new(1.5, -0.5, 0.0, 0.0);
+        let initial_state = Vector4::new(0.2, 0.3, 0.0, 0.0); // Initial conditions of the system
         let m = 1.0;
         let l = 1.0;
         let g = 9.81;
